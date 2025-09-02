@@ -1,0 +1,55 @@
+﻿version: "3.9"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_ms
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: exchange_ms
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - ms-network
+
+  exchange_service:
+    build:
+      context: ./exchange-service
+    container_name: exchange-service
+    ports:
+      - "8000:8000"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/exchange_service
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    depends_on:
+      - mysql
+    networks:
+      - ms-network
+
+  book_service:
+    build:
+      context: ./book-service
+    container_name: book-service
+    ports:
+      - "8100:8100"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/book_service
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+    depends_on:
+      - exchange_service
+      - mysql
+    networks:
+      - ms-network
+
+networks:
+  ms-network:
+    driver: bridge
+volumes:
+  mysql_data:
