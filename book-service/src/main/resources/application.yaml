@@ -14,5 +14,38 @@ spring:
     show-sql: false
     open-in-view: false
 
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+
+resilience4j:
+  ratelimiter:
+    instances:
+      default:
+        limit-for-period: 2
+        limit-refresh-period: 10
+  retry:
+    instances:
+      foo-bar: #name of retry
+        max-attempts: 5
+        wait-duration: 1s
+        enable-exponential-backoff: true
+
 server:
   port: 8100
+
+springdoc:
+  api-docs:
+    path: /book-service/v3/api-docs
+  swagger-ui:
+    url: /book-service/v3/api-docs
+  override-server-url: true

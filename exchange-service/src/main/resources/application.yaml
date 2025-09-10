@@ -14,7 +14,26 @@ spring:
     show-sql: false
     open-in-view: false
 
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://zipkin:9411/api/v2/spans
 
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
 
 server:
   port: 8000
+
+springdoc:
+  api-docs:
+    path: /exchange-service/v3/api-docs
+  swagger-ui:
+    url: /exchange-service/v3/api-docs
+  override-server-url: true

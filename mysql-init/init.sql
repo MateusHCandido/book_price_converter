@@ -1,0 +1,2 @@
+CREATE DATABASE IF NOT EXISTS book_service;
+CREATE DATABASE IF NOT EXISTS exchange_service;

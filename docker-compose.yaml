@@ -7,28 +7,66 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: exchange_ms
-      MYSQL_USER: user
-      MYSQL_PASSWORD: userpass
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
     networks:
       - ms-network
+
+  zipkin:
+    image: openzipkin/zipkin:3.5.1
+    container_name: zipkin
+    restart: always
+    ports:
+      - "9411:9411"
+    networks:
+      - ms-network
+
+  naming-server:
+    build:
+      context: ./naming-server
+    container_name: naming-server
+    restart: always
+    depends_on:
+      - zipkin
+    ports:
+      - "8761:8761"
+    networks:
+      - ms-network
+
+  api_gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8765:8765"
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://naming-server:8761/eureka
+    restart: always
+    depends_on:
+      - zipkin
+      - naming-server
+    networks:
+      - ms-network
+
 
   exchange_service:
     build:
       context: ./exchange-service
     container_name: exchange-service
+    restart: always
     ports:
       - "8000:8000"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/exchange_service
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://naming-server:8761/eureka
     depends_on:
       - mysql
+      - naming-server
     networks:
       - ms-network
 
@@ -36,15 +74,18 @@ services:
     build:
       context: ./book-service
     container_name: book-service
+    restart: always
     ports:
       - "8100:8100"
     environment:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/book_service
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://naming-server:8761/eureka
     depends_on:
-      - exchange_service
       - mysql
+      - naming-server
+      - exchange_service
     networks:
       - ms-network
 
