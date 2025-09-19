@@ -5,72 +5,54 @@ on:
     branches:
       - "main"
 
+
 jobs:
+
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout do repositório
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v4
 
-      # 2. Login no Docker Hub
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
-      # 3. Configura Java 21
-      - name: Setup Java 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'adopt'
+    - name: Setup Java 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'adopt'
 
-      # 4. Build Naming Server Docker Image
-      - name: Build Eureka Naming Server Docker Image
-        working-directory: naming-server
-        run: |
-          mvn spring-boot:build-image -DskipTests \
-            -Dspring-boot.build-image.builder=paketobuildpacks/builder:base \
-            -Dspring-boot.build-image.imageName=${{ secrets.DOCKER_USERNAME }}/naming-server:0.0.1-SNAPSHOT
+    - name: Build Eureka Naming Server Docker Image
+      working-directory: naming-server
+      run: mvn spring-boot:build-image -DskipTests
 
-      # 5. Build API Gateway Docker Image
-      - name: Build API Gateway Docker Image
-        working-directory: api-gateway
-        run: |
-          mvn spring-boot:build-image -DskipTests \
-            -Dspring-boot.build-image.builder=paketobuildpacks/builder:base \
-            -Dspring-boot.build-image.imageName=${{ secrets.DOCKER_USERNAME }}/api-gateway:0.0.1-SNAPSHOT
+    - name: Build API Gateway Docker Image
+      working-directory: api-gateway
+      run: mvn spring-boot:build-image -DskipTests
 
-      # 6. Build Exchange Service Docker Image
-      - name: Build Exchange Service Docker Image
-        working-directory: exchange-service
-        run: |
-          mvn clean package -DskipTests
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/exchange-service:0.0.1-SNAPSHOT .
+    - name: Build Exchange Service Docker Image
+      working-directory: exchange-service
+      run: mvn clean package -DskipTests
 
-      # 7. Build Book Service Docker Image
-      - name: Build Book Service Docker Image
-        working-directory: book-service
-        run: |
-          mvn clean package -DskipTests
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/book-service:0.0.1-SNAPSHOT .
+    - name: Build Book Service Docker Image
+      working-directory: book-service
+      run: mvn clean package -DskipTests
 
-      # 8. Taguear imagens
-      - name: Tag Docker Images
-        run: |
-          for image in naming-server api-gateway exchange-service book-service; do
-            docker tag ${{ secrets.DOCKER_USERNAME }}/$image:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/$image:latest
-            docker tag ${{ secrets.DOCKER_USERNAME }}/$image:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/$image:${{ github.RUN_ID }}
-          done
+    - name: Docker Compose Build
+      run: docker compose build
 
-      # 9. Push das imagens para Docker Hub
-      - name: Push Docker Images to Docker Hub
-        run: |
-          for image in naming-server api-gateway exchange-service book-service; do
-            docker push ${{ secrets.DOCKER_USERNAME }}/$image:0.0.1-SNAPSHOT
-            docker push ${{ secrets.DOCKER_USERNAME }}/$image:latest
-            docker push ${{ secrets.DOCKER_USERNAME }}/$image:${{ github.RUN_ID }}
-          done
+    - name: Tag Docker Images
+      run: |
+        docker tag ${{ secrets.DOCKER_USERNAME }}/naming-server:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/naming-server:latest
+        
+
+    - name: Push Docker Images to Docker Hub
+      run: |
+        docker push ${{ secrets.DOCKER_USERNAME }}/naming-server:latest
+        
+
