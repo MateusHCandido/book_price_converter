@@ -62,15 +62,12 @@ jobs:
       - name: Tag Docker Images
         run: |
           for image in naming-server api-gateway exchange-service book-service; do
-            docker tag ${{ secrets.DOCKER_USERNAME }}/$image:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/$image:latest
-            docker tag ${{ secrets.DOCKER_USERNAME }}/$image:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/$image:${{ github.RUN_ID }}
+            docker tag ${{ secrets.DOCKER_USERNAME }}/image:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/$image:latest
+            docker tag ${{ secrets.DOCKER_USERNAME }}/image:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/$image:${{ github.RUN_ID }}
           done
 
       # 9. Push Docker Images
       - name: Push Docker Images to Docker Hub
         run: |
-          for image in naming-server api-gateway exchange-service book-service; do
-            docker push ${{ secrets.DOCKER_USERNAME }}/$image:0.0.1-SNAPSHOT
-            docker push ${{ secrets.DOCKER_USERNAME }}/$image:latest
-            docker push ${{ secrets.DOCKER_USERNAME }}/$image:${{ github.RUN_ID }}
-          done
+          ${{ secrets.DOCKER_USERNAME }}/$image:latest
+          ${{ secrets.DOCKER_USERNAME }}/$image:${{ github.RUN_ID }}
