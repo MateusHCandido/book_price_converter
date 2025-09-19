@@ -28,35 +28,25 @@ jobs:
           java-version: '21'
           distribution: 'adopt'
 
-      # 4. Build Naming Server Docker Image
       - name: Build Eureka Naming Server Docker Image
         working-directory: naming-server
         run: |
-          mvn spring-boot:build-image -DskipTests \
-            -Dspring-boot.build-image.builder=paketobuildpacks/builder:base \
-            -Dspring-boot.build-image.imageName=${{ secrets.DOCKER_USERNAME }}/naming-server:0.0.1-SNAPSHOT
+          mvn spring-boot:build-image -DskipTests 
 
-      # 5. Build API Gateway Docker Image
       - name: Build API Gateway Docker Image
         working-directory: api-gateway
         run: |
-          mvn spring-boot:build-image -DskipTests \
-            -Dspring-boot.build-image.builder=paketobuildpacks/builder:base \
-            -Dspring-boot.build-image.imageName=${{ secrets.DOCKER_USERNAME }}/api-gateway:0.0.1-SNAPSHOT
+          mvn spring-boot:build-image -DskipTests 
 
-      # 6. Build Exchange Service Docker Image
       - name: Build Exchange Service Docker Image
         working-directory: exchange-service
         run: |
           mvn clean package -DskipTests
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/exchange-service:0.0.1-SNAPSHOT .
 
-      # 7. Build Book Service Docker Image
       - name: Build Book Service Docker Image
         working-directory: book-service
         run: |
           mvn clean package -DskipTests
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/book-service:0.0.1-SNAPSHOT .
 
       # 8. Tag Docker Images
       - name: Tag Docker Images
