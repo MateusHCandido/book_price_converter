@@ -10,18 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout do repositório
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Login no Docker Hub
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_ACCESS_TOKEN }}
 
-      # 3. Setup Java 21
       - name: Setup Java 21
         uses: actions/setup-java@v4
         with:
@@ -48,15 +45,20 @@ jobs:
         run: |
           mvn clean package -DskipTests
 
-      # 8. Tag Docker Images
-      - name: Tag Docker Images
+      - name: Push Docker Images
         run: |
-          for image in naming-server api-gateway exchange-service book-service; do
-            docker tag ${{ secrets.DOCKER_USERNAME }}/image:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/$image:latest
-            docker tag ${{ secrets.DOCKER_USERNAME }}/image:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/$image:${{ github.RUN_ID }}
-          done
+          docker push ${{ secrets.DOCKER_USERNAME }}/naming-server:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/naming-server:${{ github.RUN_ID }}
 
-      # 9. Push Docker Images
+          docker push ${{ secrets.DOCKER_USERNAME }}/api-gateway:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/api-gateway:${{ github.RUN_ID }}
+
+          docker push ${{ secrets.DOCKER_USERNAME }}/exchange-service:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/exchange-service:${{ github.RUN_ID }}
+
+          docker push ${{ secrets.DOCKER_USERNAME }}/book-service:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/book-service:${{ github.RUN_ID }}
+
       - name: Push Docker Images to Docker Hub
         run: |
           ${{ secrets.DOCKER_USERNAME }}/$image:latest
