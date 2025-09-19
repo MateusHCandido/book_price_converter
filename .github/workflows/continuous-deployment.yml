@@ -44,5 +44,5 @@ jobs:
       run: mvn clean package -DskipTests
 
     - name: Docker Compose Build
-      run: docker-compose build
+      run: docker compose build
 
