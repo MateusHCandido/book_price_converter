@@ -25,38 +25,62 @@ jobs:
           java-version: '21'
           distribution: 'adopt'
 
+      # Naming Server
       - name: Build Eureka Naming Server Docker Image
         working-directory: naming-server
-        run: mvn spring-boot:build-image -DskipTests
+        run: mvn spring-boot:build-image -DskipTests \
+          -Dspring-boot.build-image.imageName=${{ secrets.DOCKER_USERNAME }}/naming-server:0.0.1-SNAPSHOT
 
+      # API Gateway
       - name: Build API Gateway Docker Image
         working-directory: api-gateway
-        run: mvn spring-boot:build-image -DskipTests
+        run: mvn spring-boot:build-image -DskipTests \
+          -Dspring-boot.build-image.imageName=${{ secrets.DOCKER_USERNAME }}/api-gateway:0.0.1-SNAPSHOT
 
+      # Exchange Service
       - name: Build Exchange Service Docker Image
         working-directory: exchange-service
-        run: mvn clean package -DskipTests
+        run: |
+          mvn clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/exchange-service:0.0.1-SNAPSHOT .
 
+      # Book Service
       - name: Build Book Service Docker Image
         working-directory: book-service
-        run: mvn clean package -DskipTests
+        run: |
+          mvn clean package -DskipTests
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/book-service:0.0.1-SNAPSHOT .
 
+      # Tag Images
       - name: Tag Docker Images
         run: |
-          docker tag ${{secrets.DOCKER_USERNAME}}/naming-server:0.0.1-SNAPSHOT ${{secrets.DOCKER_USERNAME}}/naming-server:latest
-          docker tag ${{secrets.DOCKER_USERNAME}}/naming-server:0.0.1-SNAPSHOT ${{secrets.DOCKER_USERNAME}}/naming-server:${{github.RUN_ID}}
-          docker tag ${{secrets.DOCKER_USERNAME}}/api-gateway:0.0.1-SNAPSHOT ${{secrets.DOCKER_USERNAME}}/api-gateway:latest
-          docker tag ${{secrets.DOCKER_USERNAME}}/api-gateway:0.0.1-SNAPSHOT ${{secrets.DOCKER_USERNAME}}/api-gateway:${{github.RUN_ID}}
-          docker tag ${{secrets.DOCKER_USERNAME}}/book-service:latest ${{secrets.DOCKER_USERNAME}}/book-service:${{github.RUN_ID}}
-          docker tag ${{secrets.DOCKER_USERNAME}}/exchange-service:latest ${{secrets.DOCKER_USERNAME}}/exchange-service:${{github.RUN_ID}}
+          docker tag ${{ secrets.DOCKER_USERNAME }}/naming-server:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/naming-server:latest
+          docker tag ${{ secrets.DOCKER_USERNAME }}/naming-server:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/naming-server:${{ github.RUN_ID }}
 
+          docker tag ${{ secrets.DOCKER_USERNAME }}/api-gateway:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/api-gateway:latest
+          docker tag ${{ secrets.DOCKER_USERNAME }}/api-gateway:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/api-gateway:${{ github.RUN_ID }}
+
+          docker tag ${{ secrets.DOCKER_USERNAME }}/book-service:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/book-service:latest
+          docker tag ${{ secrets.DOCKER_USERNAME }}/book-service:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/book-service:${{ github.RUN_ID }}
+
+          docker tag ${{ secrets.DOCKER_USERNAME }}/exchange-service:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/exchange-service:latest
+          docker tag ${{ secrets.DOCKER_USERNAME }}/exchange-service:0.0.1-SNAPSHOT ${{ secrets.DOCKER_USERNAME }}/exchange-service:${{ github.RUN_ID }}
+
+      # Push Images
       - name: Push Docker Images to Docker Hub
         run: |
-          docker push ${{secrets.DOCKER_USERNAME}}/naming-server:latest
-          docker push ${{secrets.DOCKER_USERNAME}}/naming-server:${{github.RUN_ID}}
-          docker push ${{secrets.DOCKER_USERNAME}}/api-gateway:latest
-          docker push ${{secrets.DOCKER_USERNAME}}/api-gateway:${{github.RUN_ID}}
-          docker push ${{secrets.DOCKER_USERNAME}}/book-service:latest
-          docker push ${{secrets.DOCKER_USERNAME}}/book-service:${{github.RUN_ID}}
-          docker push ${{secrets.DOCKER_USERNAME}}/exchange-service:latest
-          docker push ${{secrets.DOCKER_USERNAME}}/exchange-service:${{github.RUN_ID}}
+          docker push ${{ secrets.DOCKER_USERNAME }}/naming-server:0.0.1-SNAPSHOT
+          docker push ${{ secrets.DOCKER_USERNAME }}/naming-server:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/naming-server:${{ github.RUN_ID }}
+
+          docker push ${{ secrets.DOCKER_USERNAME }}/api-gateway:0.0.1-SNAPSHOT
+          docker push ${{ secrets.DOCKER_USERNAME }}/api-gateway:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/api-gateway:${{ github.RUN_ID }}
+
+          docker push ${{ secrets.DOCKER_USERNAME }}/book-service:0.0.1-SNAPSHOT
+          docker push ${{ secrets.DOCKER_USERNAME }}/book-service:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/book-service:${{ github.RUN_ID }}
+
+          docker push ${{ secrets.DOCKER_USERNAME }}/exchange-service:0.0.1-SNAPSHOT
+          docker push ${{ secrets.DOCKER_USERNAME }}/exchange-service:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/exchange-service:${{ github.RUN_ID }}
